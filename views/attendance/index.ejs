@@ -1,0 +1,145 @@
+<%- include('../partials/header', { title: 'Absensi Karyawan' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Absensi Karyawan' }) %>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h2>Absensi Karyawan</h2>
+        <p>Kelola kehadiran, check-in, dan check-out karyawan</p>
+      </div>
+
+      <!-- Quick Check In/Out -->
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Check-in / Check-out Cepat</h5>
+          <form method="POST" action="/attendance/check-in" class="row g-2 align-items-end">
+            <div class="col-md-6">
+              <label class="form-label">Pilih Karyawan</label>
+              <select name="employee_id" class="form-select" required>
+                <option value="">-- Pilih Karyawan --</option>
+                <% employees.forEach(e => { %>
+                  <option value="<%= e.id %>"><%= e.name %> - <%= e.position || '-' %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-success btn-santai w-100"><i class="bi bi-box-arrow-in-right"></i> Check-in</button>
+            </div>
+            <div class="col-md-3">
+              <button type="submit" formaction="/attendance/check-out" class="btn btn-warning btn-santai w-100"><i class="bi bi-box-arrow-left"></i> Check-out</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Filter -->
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-funnel text-primary me-2"></i>Filter Periode</h5>
+          <form method="GET" class="row g-2">
+            <div class="col-md-3">
+              <select name="month" class="form-select">
+                <% for(let i=1; i<=12; i++) { %>
+                  <option value="<%= i %>" <%= parseInt(month) === i ? 'selected' : '' %>><%= moment().month(i-1).format('MMMM') %></option>
+                <% } %>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <input type="number" name="year" class="form-control" value="<%= year %>">
+            </div>
+            <div class="col-md-4">
+              <select name="employee_id" class="form-select">
+                <option value="">Semua Karyawan</option>
+                <% employees.forEach(e => { %>
+                  <option value="<%= e.id %>" <%= employee_id == e.id ? 'selected' : '' %>><%= e.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-outline-santai btn-santai w-100"><i class="bi bi-filter"></i> Tampilkan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <% if (Object.keys(summary).length > 0) { %>
+        <div class="row g-3 mb-4">
+          <% Object.values(summary).forEach(s => { %>
+            <div class="col-xl-3 col-md-6">
+              <div class="card-santai">
+                <div class="card-body">
+                  <h6 class="fw-bold"><%= s.name %></h6>
+                  <p class="text-muted small mb-2"><%= s.position || 'Karyawan' %></p>
+                  <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-soft-success text-success">Hadir: <%= s.counts.present %></span>
+                    <span class="badge bg-soft-danger text-danger">Absen: <%= s.counts.absent %></span>
+                    <span class="badge bg-soft-warning text-warning">Telat: <%= s.counts.late %></span>
+                    <span class="badge bg-soft-info text-info">Izin: <%= s.counts.leave %></span>
+                    <span class="badge bg-soft-secondary text-secondary">Sakit: <%= s.counts.sick %></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <!-- Actions -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-list-check text-primary me-2"></i>Daftar Absensi</h5>
+        <a href="/attendance/create" class="btn btn-primary-santai btn-santai"><i class="bi bi-plus-lg"></i> Tambah Absensi</a>
+      </div>
+
+      <!-- Table -->
+      <div class="card-santai">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Karyawan</th>
+                  <th>Check-in</th>
+                  <th>Check-out</th>
+                  <th>Status</th>
+                  <th>Keterangan</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% attendances.forEach(a => { %>
+                  <tr>
+                    <td><%= moment(a.date).format('DD MMM YYYY') %></td>
+                    <td class="fw-semibold"><%= a.employee.name %></td>
+                    <td><%= a.check_in || '-' %></td>
+                    <td><%= a.check_out || '-' %></td>
+                    <td>
+                      <% const badgeClass = { present: 'bg-soft-success text-success', absent: 'bg-soft-danger text-danger', late: 'bg-soft-warning text-warning', leave: 'bg-soft-info text-info', sick: 'bg-soft-secondary text-secondary' }; %>
+                      <span class="badge <%= badgeClass[a.status] || 'bg-soft-secondary' %>"><%= STATUS_LABELS[a.status] %></span>
+                    </td>
+                    <td><%= a.note || '-' %></td>
+                    <td>
+                      <a href="/attendance/<%= a.id %>/edit" class="btn btn-sm btn-warning text-white me-1"><i class="bi bi-pencil"></i></a>
+                      <form method="POST" action="/attendance/<%= a.id %>/delete" class="d-inline" onsubmit="return confirm('Yakin hapus data absensi ini?')">
+                        <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+                <% if (attendances.length === 0) { %>
+                  <tr><td colspan="7" class="text-muted text-center py-4">Belum ada data absensi untuk periode ini</td></tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

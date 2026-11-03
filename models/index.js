@@ -197,6 +197,25 @@ const Income = sequelize.define('Income', {
   underscored: true,
 });
 
+// Attendance Model
+const Attendance = sequelize.define('Attendance', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  employee_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'employees', key: 'id' } },
+  date: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') },
+  check_in: { type: DataTypes.TIME },
+  check_out: { type: DataTypes.TIME },
+  status: { type: DataTypes.ENUM('present', 'absent', 'late', 'leave', 'sick'), defaultValue: 'present' },
+  note: { type: DataTypes.TEXT },
+  created_by: { type: DataTypes.INTEGER, allowNull: true, references: { model: 'users', key: 'id' } },
+}, {
+  tableName: 'attendances',
+  timestamps: true,
+  underscored: true,
+  indexes: [
+    { unique: true, fields: ['employee_id', 'date'] }
+  ]
+});
+
 // Associations
 Product.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
 Category.hasMany(Product, { foreignKey: 'category_id' });
@@ -231,6 +250,12 @@ Payment.belongsTo(Debt, { foreignKey: 'debt_id' });
 Employee.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasOne(Employee, { foreignKey: 'user_id' });
 
+Attendance.belongsTo(Employee, { foreignKey: 'employee_id', as: 'employee' });
+Employee.hasMany(Attendance, { foreignKey: 'employee_id' });
+
+Attendance.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+User.hasMany(Attendance, { foreignKey: 'created_by' });
+
 module.exports = {
   sequelize,
   User,
@@ -245,4 +270,5 @@ module.exports = {
   Payment,
   Expense,
   Income,
+  Attendance,
 };

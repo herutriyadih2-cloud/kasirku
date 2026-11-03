@@ -20,6 +20,7 @@ const expenseRoutes = require('./routes/expenses');
 const incomeRoutes = require('./routes/incomes');
 const reportRoutes = require('./routes/reports');
 const employeeRoutes = require('./routes/employees');
+const attendanceRoutes = require('./routes/attendance');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,7 @@ app.use('/', expenseRoutes);
 app.use('/', incomeRoutes);
 app.use('/', reportRoutes);
 app.use('/', employeeRoutes);
+app.use('/', attendanceRoutes);
 
 app.get('/', (req, res) => {
   if (req.session.userId) return res.redirect('/dashboard');

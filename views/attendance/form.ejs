@@ -1,0 +1,65 @@
+<%- include('../partials/header', { title: attendance ? 'Edit Absensi' : 'Tambah Absensi' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: attendance ? 'Edit Absensi' : 'Tambah Absensi' }) %>
+
+    <div class="page-content">
+      <div class="card-santai" style="max-width: 600px;">
+        <div class="card-body">
+          <h5 class="fw-bold mb-4"><i class="bi bi-calendar-check text-primary me-2"></i><%= attendance ? 'Edit' : 'Tambah' %> Absensi</h5>
+          
+          <form method="POST" action="<%= attendance ? '/attendance/' + attendance.id + '/update' : '/attendance' %>">
+            <div class="mb-3">
+              <label class="form-label">Karyawan</label>
+              <select name="employee_id" class="form-select" required>
+                <option value="">-- Pilih Karyawan --</option>
+                <% employees.forEach(e => { %>
+                  <option value="<%= e.id %>" <%= (attendance && attendance.employee_id == e.id) ? 'selected' : '' %>><%= e.name %> - <%= e.position || '-' %></option>
+                <% }) %>
+              </select>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Tanggal</label>
+              <input type="date" name="date" class="form-control" value="<%= attendance ? attendance.date : today %>" required>
+            </div>
+            
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Check-in</label>
+                <input type="time" name="check_in" class="form-control" value="<%= attendance ? attendance.check_in : '' %>">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Check-out</label>
+                <input type="time" name="check_out" class="form-control" value="<%= attendance ? attendance.check_out : '' %>">
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select" required>
+                <% Object.keys(STATUS_LABELS).forEach(key => { %>
+                  <option value="<%= key %>" <%= (attendance && attendance.status === key) ? 'selected' : '' %>><%= STATUS_LABELS[key] %></option>
+                <% }) %>
+              </select>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label">Keterangan</label>
+              <textarea name="note" class="form-control" rows="3"><%= attendance ? attendance.note : '' %></textarea>
+            </div>
+            
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary-santai btn-santai"><i class="bi bi-save"></i> Simpan</button>
+              <a href="/attendance" class="btn btn-secondary btn-santai"><i class="bi bi-arrow-left"></i> Kembali</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
