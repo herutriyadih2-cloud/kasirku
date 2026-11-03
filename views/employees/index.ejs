@@ -1,0 +1,92 @@
+<%- include('../partials/header', { title: 'Karyawan' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Karyawan' }) %>
+
+    <div class="page-content">
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-4"><i class="bi bi-person-plus text-primary me-2"></i>Tambah Karyawan</h5>
+          <form method="POST" action="/employees" class="row g-3">
+            <div class="col-md-2"><input type="text" name="code" class="form-control" placeholder="Kode" required></div>
+            <div class="col-md-3"><input type="text" name="name" class="form-control" placeholder="Nama karyawan" required></div>
+            <div class="col-md-2"><input type="text" name="phone" class="form-control" placeholder="Telepon"></div>
+            <div class="col-md-2"><input type="text" name="position" class="form-control" placeholder="Jabatan"></div>
+            <div class="col-md-2"><input type="number" name="salary" class="form-control" placeholder="Gaji"></div>
+            <div class="col-md-1"><input type="date" name="join_date" class="form-control" placeholder="Mulai"></div>
+            <div class="col-md-12"><hr class="my-2"></div>
+            <div class="col-md-3"><input type="text" name="username" class="form-control" placeholder="Username login (opsional)"></div>
+            <div class="col-md-3"><input type="password" name="password" class="form-control" placeholder="Password login (opsional)"></div>
+            <div class="col-md-3">
+              <select name="role" class="form-select">
+                <option value="kasir">Kasir</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="col-md-3"><button class="btn btn-primary-santai btn-santai w-100"><i class="bi bi-plus-lg"></i> Tambah Karyawan</button></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card-santai">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-people text-primary me-2"></i>Daftar Karyawan</h5>
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead><tr><th>Kode</th><th>Nama</th><th>Jabatan</th><th>Telepon</th><th>Gaji</th><th>Status</th><th>Login</th><th class="text-end">Aksi</th></tr></thead>
+              <tbody>
+                <% employees.forEach(e => { %>
+                  <tr>
+                    <td class="fw-semibold"><%= e.code %></td>
+                    <td><%= e.name %></td>
+                    <td><%= e.position || '-' %></td>
+                    <td><%= e.phone || '-' %></td>
+                    <td>Rp <%= Number(e.salary).toLocaleString('id-ID') %></td>
+                    <td><span class="badge-santai bg-<%= e.status === 'active' ? 'soft-success text-success' : 'soft-secondary text-secondary' %>"><%= e.status.toUpperCase() %></span></td>
+                    <td><%= e.user ? e.user.username : '-' %></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-warning text-white" data-bs-toggle="modal" data-bs-target="#editModal<%= e.id %>"><i class="bi bi-pencil"></i></button>
+                      <form method="POST" action="/employees/<%= e.id %>/delete" class="d-inline" onsubmit="return confirm('Hapus karyawan ini?')">
+                        <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                  <div class="modal fade" id="editModal<%= e.id %>">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                        <form method="POST" action="/employees/<%= e.id %>/update">
+                          <div class="modal-header border-0"><h5 class="modal-title fw-bold">Edit Karyawan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                          <div class="modal-body">
+                            <div class="row g-3">
+                              <div class="col-md-4"><label class="form-label">Kode</label><input type="text" name="code" class="form-control" value="<%= e.code %>" required></div>
+                              <div class="col-md-8"><label class="form-label">Nama</label><input type="text" name="name" class="form-control" value="<%= e.name %>" required></div>
+                              <div class="col-md-6"><label class="form-label">Telepon</label><input type="text" name="phone" class="form-control" value="<%= e.phone %>"></div>
+                              <div class="col-md-6"><label class="form-label">Jabatan</label><input type="text" name="position" class="form-control" value="<%= e.position %>"></div>
+                              <div class="col-md-6"><label class="form-label">Gaji</label><input type="number" name="salary" class="form-control" value="<%= e.salary %>"></div>
+                              <div class="col-md-6"><label class="form-label">Mulai Kerja</label><input type="date" name="join_date" class="form-control" value="<%= e.join_date %>"></div>
+                              <div class="col-md-6"><label class="form-label">Status</label>
+                                <select name="status" class="form-select">
+                                  <option value="active" <%= e.status === 'active' ? 'selected' : '' %>>Aktif</option>
+                                  <option value="inactive" <%= e.status === 'inactive' ? 'selected' : '' %>>Tidak Aktif</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="modal-footer border-0"><button class="btn btn-primary-santai btn-santai">Simpan</button></div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

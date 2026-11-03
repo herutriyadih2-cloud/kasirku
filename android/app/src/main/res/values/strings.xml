@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Laundry Suarni Kasir</string>
+    <string name="title_activity_main">Laundry Suarni Kasir</string>
+    <string name="package_name">com.laundrysuarni.kasir</string>
+    <string name="custom_url_scheme">com.laundrysuarni.kasir</string>
+</resources>

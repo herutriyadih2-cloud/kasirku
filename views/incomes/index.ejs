@@ -1,0 +1,76 @@
+<%- include('../partials/header', { title: 'Pemasukan Lain' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Pemasukan Lain' }) %>
+
+    <div class="page-content">
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-funnel text-primary me-2"></i>Filter & Tambah Pemasukan</h5>
+          <form method="GET" class="row g-2 mb-4">
+            <div class="col-md-4"><input type="date" name="start" class="form-control" value="<%= start %>"></div>
+            <div class="col-md-4"><input type="date" name="end" class="form-control" value="<%= end %>"></div>
+            <div class="col-md-4"><button class="btn btn-outline-santai btn-santai w-100"><i class="bi bi-filter"></i> Filter</button></div>
+          </form>
+          <form method="POST" action="/incomes" class="row g-2">
+            <div class="col-md-4"><input type="text" name="description" class="form-control" placeholder="Keterangan" required></div>
+            <div class="col-md-2"><input type="number" name="amount" class="form-control" placeholder="Jumlah" required></div>
+            <div class="col-md-2"><input type="text" name="category" class="form-control" placeholder="Kategori"></div>
+            <div class="col-md-3"><input type="date" name="date" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>" required></div>
+            <div class="col-md-1"><button class="btn btn-primary-santai btn-santai w-100"><i class="bi bi-plus-lg"></i></button></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card-santai">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-cash-stack text-primary me-2"></i>Daftar Pemasukan</h5>
+            <span class="badge-santai bg-soft-success text-success">Total: Rp <%= Number(total).toLocaleString('id-ID') %></span>
+          </div>
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jumlah</th><th class="text-end">Aksi</th></tr></thead>
+              <tbody>
+                <% incomes.forEach(i => { %>
+                  <tr>
+                    <td><%= new Date(i.date).toLocaleDateString('id-ID') %></td>
+                    <td class="fw-semibold"><%= i.description %></td>
+                    <td><%= i.category || '-' %></td>
+                    <td>Rp <%= Number(i.amount).toLocaleString('id-ID') %></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-warning text-white" data-bs-toggle="modal" data-bs-target="#editModal<%= i.id %>"><i class="bi bi-pencil"></i></button>
+                      <form method="POST" action="/incomes/<%= i.id %>/delete" class="d-inline" onsubmit="return confirm('Hapus pemasukan ini?')">
+                        <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                  <div class="modal fade" id="editModal<%= i.id %>">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                        <form method="POST" action="/incomes/<%= i.id %>/update">
+                          <div class="modal-header border-0"><h5 class="modal-title fw-bold">Edit Pemasukan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                          <div class="modal-body">
+                            <label class="form-label">Keterangan</label><input type="text" name="description" class="form-control mb-3" value="<%= i.description %>" required>
+                            <label class="form-label">Jumlah</label><input type="number" name="amount" class="form-control mb-3" value="<%= i.amount %>" required>
+                            <label class="form-label">Kategori</label><input type="text" name="category" class="form-control mb-3" value="<%= i.category %>">
+                            <label class="form-label">Tanggal</label><input type="date" name="date" class="form-control" value="<%= i.date.toISOString ? i.date.toISOString().split('T')[0] : i.date %>" required>
+                          </div>
+                          <div class="modal-footer border-0"><button class="btn btn-primary-santai btn-santai">Simpan</button></div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

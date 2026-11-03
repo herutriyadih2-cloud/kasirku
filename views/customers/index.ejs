@@ -1,0 +1,61 @@
+<%- include('../partials/header', { title: 'Pelanggan' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Pelanggan' }) %>
+
+    <div class="page-content">
+      <div class="card-santai">
+        <div class="card-body">
+          <h5 class="fw-bold mb-4"><i class="bi bi-person-plus text-primary me-2"></i>Tambah Pelanggan</h5>
+          <form method="POST" action="/customers" class="row g-3 mb-4">
+            <div class="col-md-4"><input type="text" name="name" class="form-control" placeholder="Nama pelanggan" required></div>
+            <div class="col-md-3"><input type="text" name="phone" class="form-control" placeholder="Telepon / WhatsApp"></div>
+            <div class="col-md-4"><input type="text" name="address" class="form-control" placeholder="Alamat"></div>
+            <div class="col-md-1"><button class="btn btn-primary-santai btn-santai w-100"><i class="bi bi-plus-lg"></i></button></div>
+          </form>
+
+          <h5 class="fw-bold mb-3">Daftar Pelanggan</h5>
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead><tr><th>Nama</th><th>Telepon</th><th>Alamat</th><th class="text-end">Aksi</th></tr></thead>
+              <tbody>
+                <% customers.forEach(c => { %>
+                  <tr>
+                    <td class="fw-semibold"><%= c.name %></td>
+                    <td><%= c.phone || '-' %></td>
+                    <td><%= c.address || '-' %></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-warning text-white" data-bs-toggle="modal" data-bs-target="#editModal<%= c.id %>"><i class="bi bi-pencil"></i></button>
+                      <form method="POST" action="/customers/<%= c.id %>/delete" class="d-inline" onsubmit="return confirm('Hapus pelanggan ini?')">
+                        <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                  <div class="modal fade" id="editModal<%= c.id %>">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                        <form method="POST" action="/customers/<%= c.id %>/update">
+                          <div class="modal-header border-0"><h5 class="modal-title fw-bold">Edit Pelanggan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                          <div class="modal-body">
+                            <label class="form-label">Nama</label><input type="text" name="name" class="form-control mb-3" value="<%= c.name %>" required>
+                            <label class="form-label">Telepon</label><input type="text" name="phone" class="form-control mb-3" value="<%= c.phone %>">
+                            <label class="form-label">Alamat</label><input type="text" name="address" class="form-control" value="<%= c.address %>">
+                          </div>
+                          <div class="modal-footer border-0"><button class="btn btn-primary-santai btn-santai">Simpan</button></div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

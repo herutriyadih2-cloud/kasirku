@@ -1,0 +1,133 @@
+<%- include('partials/header', { title: 'Dashboard - Laundry Suarni' }) %>
+<%- include('partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('partials/topbar', { title: 'Dashboard' }) %>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h2>Halo, <%= user ? user.name : 'Admin' %>! 👋</h2>
+        <p>Ringkasan bisnis laundry hari ini</p>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h6>Omzet Hari Ini</h6>
+              <h3>Rp <%= Number(todaySales).toLocaleString('id-ID') %></h3>
+            </div>
+            <div class="stat-card-icon bg-soft-success"><i class="bi bi-cash-coin"></i></div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h6>Order Hari Ini</h6>
+              <h3><%= todayTransactions %></h3>
+            </div>
+            <div class="stat-card-icon bg-soft-info"><i class="bi bi-receipt"></i></div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h6>Piutang Pelanggan</h6>
+              <h3>Rp <%= Number(totalReceivable).toLocaleString('id-ID') %></h3>
+            </div>
+            <div class="stat-card-icon bg-soft-warning"><i class="bi bi-arrow-return-left"></i></div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h6>Hutang Supplier</h6>
+              <h3>Rp <%= Number(totalPayable).toLocaleString('id-ID') %></h3>
+            </div>
+            <div class="stat-card-icon bg-soft-danger"><i class="bi bi-arrow-return-right"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-xl-8">
+          <div class="card-santai">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Layanan Terlaris</h5>
+              </div>
+              <table class="table-santai">
+                <thead><tr><th>Layanan</th><th class="text-end">Total Order</th></tr></thead>
+                <tbody>
+                  <% topProducts.forEach(p => { %>
+                    <tr><td><%= p.product.name %></td><td class="text-end fw-semibold"><%= p.get('total_sold') %></td></tr>
+                  <% }) %>
+                  <% if (topProducts.length === 0) { %>
+                    <tr><td colspan="2" class="text-muted text-center py-4">Belum ada data order</td></tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-4">
+          <div class="card-santai border-start border-4 border-warning">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Stok Menipis</h5>
+              <table class="table-santai">
+                <thead><tr><th>Item</th><th class="text-end">Stok</th></tr></thead>
+                <tbody>
+                  <% lowStock.forEach(p => { %>
+                    <tr><td><%= p.name %></td><td class="text-end fw-semibold text-danger"><%= p.stock %> <%= p.unit %></td></tr>
+                  <% }) %>
+                  <% if (lowStock.length === 0) { %>
+                    <tr><td colspan="2" class="text-muted text-center py-4">Semua stok aman</td></tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-md-4">
+          <div class="card-santai">
+            <div class="card-body d-flex align-items-center justify-content-between">
+              <div>
+                <h6 class="text-muted">Total Layanan</h6>
+                <h3 class="fw-bold"><%= totalProducts %></h3>
+              </div>
+              <div class="stat-card-icon bg-soft-primary"><i class="bi bi-basket"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-santai">
+            <div class="card-body d-flex align-items-center justify-content-between">
+              <div>
+                <h6 class="text-muted">Total Pelanggan</h6>
+                <h3 class="fw-bold"><%= totalCustomers %></h3>
+              </div>
+              <div class="stat-card-icon bg-soft-primary"><i class="bi bi-people"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-santai <%= readyOrders > 0 ? 'pulse-ready' : '' %>">
+            <div class="card-body d-flex align-items-center justify-content-between">
+              <div>
+                <h6 class="text-muted">Order Siap Ambil</h6>
+                <h3 class="fw-bold"><%= typeof readyOrders !== 'undefined' ? readyOrders : 0 %></h3>
+              </div>
+              <div class="stat-card-icon bg-soft-success"><i class="bi bi-check-circle"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

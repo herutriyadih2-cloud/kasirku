@@ -1,0 +1,37 @@
+<%- include('../partials/header', { title: 'Stok Menipis' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Stok Menipis' }) %>
+
+    <div class="page-content">
+      <div class="card-santai border-start border-4 border-warning">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Daftar Stok Menipis</h5>
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead><tr><th>Kode</th><th>Nama Item</th><th>Stok</th><th>Minimum</th><th>Satuan</th></tr></thead>
+              <tbody>
+                <% products.forEach(p => { %>
+                  <tr class="<%= p.stock === 0 ? 'table-danger' : 'table-warning' %>">
+                    <td class="fw-semibold"><%= p.code %></td>
+                    <td><%= p.name %></td>
+                    <td class="fw-bold text-danger"><%= p.stock %></td>
+                    <td><%= p.min_stock %></td>
+                    <td><%= p.unit %></td>
+                  </tr>
+                <% }) %>
+                <% if (products.length === 0) { %>
+                  <tr><td colspan="5" class="text-muted text-center py-4">Semua stok aman</td></tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

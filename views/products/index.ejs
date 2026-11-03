@@ -1,0 +1,113 @@
+<%- include('../partials/header', { title: 'Layanan Laundry' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Layanan Laundry' }) %>
+
+    <div class="page-content">
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-search text-primary me-2"></i>Cari Layanan</h5>
+          <form method="GET" action="/products" class="row g-2">
+            <div class="col-md-10"><input type="text" name="search" class="form-control" placeholder="Cari nama atau kode layanan" value="<%= search %>"></div>
+            <div class="col-md-2"><button class="btn btn-outline-santai btn-santai w-100"><i class="bi bi-search"></i> Cari</button></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card-santai">
+        <div class="card-body">
+          <h5 class="fw-bold mb-4"><i class="bi bi-plus-circle text-primary me-2"></i>Tambah Layanan</h5>
+          <form method="POST" action="/products" class="row g-3 mb-4">
+            <div class="col-md-2"><input type="text" name="code" class="form-control" placeholder="Kode" required></div>
+            <div class="col-md-3"><input type="text" name="name" class="form-control" placeholder="Nama layanan" required></div>
+            <div class="col-md-2">
+              <select name="category_id" class="form-select">
+                <option value="">Kategori</option>
+                <% categories.forEach(c => { %>
+                  <option value="<%= c.id %>"><%= c.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <select name="service_type" class="form-select" required>
+                <option value="kiloan">Kiloan</option>
+                <option value="satuan">Satuan</option>
+              </select>
+            </div>
+            <div class="col-md-1"><input type="number" name="purchase_price" class="form-control" placeholder="HPP" required></div>
+            <div class="col-md-1"><input type="number" name="sale_price" class="form-control" placeholder="Harga" required></div>
+            <div class="col-md-1"><input type="text" name="unit" class="form-control" placeholder="Satuan" value="kg"></div>
+            <div class="col-md-12"><button class="btn btn-primary-santai btn-santai"><i class="bi bi-plus-lg"></i> Tambah Layanan</button></div>
+          </form>
+
+          <h5 class="fw-bold mb-3">Daftar Layanan</h5>
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead>
+                <tr><th>Kode</th><th>Nama</th><th>Kategori</th><th>Tipe</th><th>HPP</th><th>Harga</th><th>Satuan</th><th class="text-end">Aksi</th></tr>
+              </thead>
+              <tbody>
+                <% products.forEach(p => { %>
+                  <tr>
+                    <td class="fw-semibold"><%= p.code %></td>
+                    <td><%= p.name %></td>
+                    <td><%= p.category ? p.category.name : '-' %></td>
+                    <td><span class="badge-santai bg-soft-primary text-primary"><%= p.service_type === 'kiloan' ? 'Kiloan' : 'Satuan' %></span></td>
+                    <td>Rp <%= Number(p.purchase_price).toLocaleString('id-ID') %></td>
+                    <td class="fw-semibold">Rp <%= Number(p.sale_price).toLocaleString('id-ID') %></td>
+                    <td><%= p.unit %></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-warning text-white" data-bs-toggle="modal" data-bs-target="#editModal<%= p.id %>"><i class="bi bi-pencil"></i></button>
+                      <form method="POST" action="/products/<%= p.id %>/delete" class="d-inline" onsubmit="return confirm('Hapus layanan ini?')">
+                        <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                  <div class="modal fade" id="editModal<%= p.id %>">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                      <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                        <form method="POST" action="/products/<%= p.id %>/update">
+                          <div class="modal-header border-0"><h5 class="modal-title fw-bold">Edit Layanan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                          <div class="modal-body">
+                            <div class="row g-3">
+                              <div class="col-md-3"><label class="form-label">Kode</label><input type="text" name="code" class="form-control" value="<%= p.code %>" required></div>
+                              <div class="col-md-4"><label class="form-label">Nama</label><input type="text" name="name" class="form-control" value="<%= p.name %>" required></div>
+                              <div class="col-md-3">
+                                <label class="form-label">Kategori</label>
+                                <select name="category_id" class="form-select">
+                                  <option value="">-</option>
+                                  <% categories.forEach(c => { %>
+                                    <option value="<%= c.id %>" <%= p.category_id === c.id ? 'selected' : '' %>><%= c.name %></option>
+                                  <% }) %>
+                                </select>
+                              </div>
+                              <div class="col-md-2">
+                                <label class="form-label">Tipe</label>
+                                <select name="service_type" class="form-select">
+                                  <option value="kiloan" <%= p.service_type === 'kiloan' ? 'selected' : '' %>>Kiloan</option>
+                                  <option value="satuan" <%= p.service_type === 'satuan' ? 'selected' : '' %>>Satuan</option>
+                                </select>
+                              </div>
+                              <div class="col-md-3"><label class="form-label">HPP</label><input type="number" name="purchase_price" class="form-control" value="<%= p.purchase_price %>" required></div>
+                              <div class="col-md-3"><label class="form-label">Harga</label><input type="number" name="sale_price" class="form-control" value="<%= p.sale_price %>" required></div>
+                              <div class="col-md-3"><label class="form-label">Satuan</label><input type="text" name="unit" class="form-control" value="<%= p.unit %>"></div>
+                            </div>
+                          </div>
+                          <div class="modal-footer border-0"><button class="btn btn-primary-santai btn-santai">Simpan</button></div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

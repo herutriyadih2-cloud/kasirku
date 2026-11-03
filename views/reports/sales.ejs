@@ -1,0 +1,59 @@
+<%- include('../partials/header', { title: 'Laporan Penjualan' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Laporan Penjualan' }) %>
+
+    <div class="page-content">
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-funnel text-primary me-2"></i>Pilih Periode</h5>
+          <form method="GET" class="row g-2">
+            <div class="col-md-4"><input type="date" name="start" class="form-control" value="<%= start %>"></div>
+            <div class="col-md-4"><input type="date" name="end" class="form-control" value="<%= end %>"></div>
+            <div class="col-md-4"><button class="btn btn-outline-santai btn-santai w-100"><i class="bi bi-filter"></i> Tampilkan</button></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info"><h6>Total Penjualan</h6><h3>Rp <%= Number(totalSales).toLocaleString('id-ID') %></h3></div>
+            <div class="stat-card-icon bg-soft-success"><i class="bi bi-cash-coin"></i></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info"><h6>Jumlah Order</h6><h3><%= totalTransactions %></h3></div>
+            <div class="stat-card-icon bg-soft-info"><i class="bi bi-receipt"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-santai">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-receipt text-primary me-2"></i>Detail Order</h5>
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead><tr><th>No Order</th><th>Tanggal</th><th>Total</th><th>Metode</th></tr></thead>
+              <tbody>
+                <% transactions.forEach(t => { %>
+                  <tr>
+                    <td class="fw-semibold"><%= t.invoice_number %></td>
+                    <td><%= new Date(t.transaction_date).toLocaleString('id-ID') %></td>
+                    <td class="fw-semibold">Rp <%= Number(t.total).toLocaleString('id-ID') %></td>
+                    <td><span class="badge-santai bg-soft-primary text-primary"><%= t.payment_method.toUpperCase() %></span></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

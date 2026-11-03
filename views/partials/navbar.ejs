@@ -1,0 +1,101 @@
+<%
+  const currentPath = typeof path !== 'undefined' ? path : (typeof originalUrl !== 'undefined' ? originalUrl : '');
+%>
+
+<%- include('app-bubbles') %>
+
+<!-- Sidebar Kiri -->
+<aside class="sidebar" id="leftSidebar">
+  <div class="sidebar-brand">
+    <img src="/images/logo.jpg" alt="Laundry Suarni" class="sidebar-logo-img">
+  </div>
+
+  <ul class="sidebar-menu">
+    <li>
+      <a href="/dashboard" class="<%= currentPath === '/dashboard' ? 'active' : '' %>">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+    </li>
+    <li>
+      <a href="/transactions/pos" class="<%= currentPath === '/transactions/pos' ? 'active' : '' %>">
+        <i class="bi bi-cart3"></i> Kasir / Order Baru
+      </a>
+    </li>
+    <li>
+      <a href="/transactions" class="<%= currentPath === '/transactions' ? 'active' : '' %>">
+        <i class="bi bi-receipt"></i> Daftar Order
+      </a>
+    </li>
+
+    <li class="sidebar-section">Layanan & Stok</li>
+    <li>
+      <a href="/products" class="<%= currentPath === '/products' ? 'active' : '' %>">
+        <i class="bi bi-basket"></i> Layanan Laundry
+      </a>
+    </li>
+    <li>
+      <a href="/categories" class="<%= currentPath === '/categories' ? 'active' : '' %>">
+        <i class="bi bi-tags"></i> Kategori Layanan
+      </a>
+    </li>
+
+    <li class="sidebar-section">Pembukuan</li>
+    <li>
+      <a href="/expenses" class="<%= currentPath === '/expenses' ? 'active' : '' %>">
+        <i class="bi bi-wallet2"></i> Pengeluaran
+      </a>
+    </li>
+    <li>
+      <a href="/incomes" class="<%= currentPath === '/incomes' ? 'active' : '' %>">
+        <i class="bi bi-cash-stack"></i> Pemasukan Lain
+      </a>
+    </li>
+    <li>
+      <a href="/debts" class="<%= currentPath === '/debts' ? 'active' : '' %>">
+        <i class="bi bi-arrow-left-right"></i> Hutang & Piutang
+      </a>
+    </li>
+
+    <li class="sidebar-section">Laporan</li>
+    <li>
+      <a href="/reports/sales" class="<%= currentPath === '/reports/sales' ? 'active' : '' %>">
+        <i class="bi bi-graph-up-arrow"></i> Penjualan
+      </a>
+    </li>
+    <li>
+      <a href="/reports/profit" class="<%= currentPath === '/reports/profit' ? 'active' : '' %>">
+        <i class="bi bi-pie-chart"></i> Laba / Rugi
+      </a>
+    </li>
+    <li>
+      <a href="/reports/stock" class="<%= currentPath === '/reports/stock' ? 'active' : '' %>">
+        <i class="bi bi-boxes"></i> Stok Menipis
+      </a>
+    </li>
+
+    <% if (user && user.role === 'admin') { %>
+    <li class="sidebar-section">Master Data</li>
+    <li>
+      <a href="/customers" class="<%= currentPath === '/customers' ? 'active' : '' %>">
+        <i class="bi bi-people"></i> Pelanggan
+      </a>
+    </li>
+    <li>
+      <a href="/suppliers" class="<%= currentPath === '/suppliers' ? 'active' : '' %>">
+        <i class="bi bi-truck"></i> Supplier
+      </a>
+    </li>
+    <li>
+      <a href="/employees" class="<%= currentPath === '/employees' ? 'active' : '' %>">
+        <i class="bi bi-person-badge"></i> Karyawan
+      </a>
+    </li>
+    <% } %>
+  </ul>
+
+  <div class="sidebar-footer">
+    <a href="/logout">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+  </div>
+</aside>

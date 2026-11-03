@@ -1,0 +1,95 @@
+<%- include('../partials/header', { title: 'Daftar Order' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Daftar Order' }) %>
+
+    <div class="page-content">
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-funnel text-primary me-2"></i>Filter Order</h5>
+          <form method="GET" class="row g-2">
+            <div class="col-md-3"><input type="date" name="start" class="form-control" value="<%= start %>"></div>
+            <div class="col-md-3"><input type="date" name="end" class="form-control" value="<%= end %>"></div>
+            <div class="col-md-3">
+              <select name="status" class="form-select">
+                <option value="">Semua Status</option>
+                <option value="received" <%= status === 'received' ? 'selected' : '' %>>Diterima</option>
+                <option value="washing" <%= status === 'washing' ? 'selected' : '' %>>Dicuci</option>
+                <option value="ironing" <%= status === 'ironing' ? 'selected' : '' %>>Disetrika</option>
+                <option value="ready" <%= status === 'ready' ? 'selected' : '' %>>Siap Ambil</option>
+                <option value="completed" <%= status === 'completed' ? 'selected' : '' %>>Selesai</option>
+              </select>
+            </div>
+            <div class="col-md-3"><button class="btn btn-outline-santai btn-santai w-100"><i class="bi bi-filter"></i> Filter</button></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card-santai">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-receipt text-primary me-2"></i>Riwayat Order</h5>
+            <a href="/transactions/pos" class="btn btn-primary-santai btn-santai"><i class="bi bi-plus-lg"></i> Order Baru</a>
+          </div>
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead>
+                <tr>
+                  <th>No Order</th>
+                  <th>Tanggal</th>
+                  <th>Pelanggan</th>
+                  <th>Berat</th>
+                  <th>Total</th>
+                  <th>Status Cuci</th>
+                  <th>Pembayaran</th>
+                  <th class="text-end">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% transactions.forEach(t => { %>
+                  <tr>
+                    <td class="fw-semibold"><%= t.invoice_number %></td>
+                    <td><%= new Date(t.transaction_date).toLocaleString('id-ID') %></td>
+                    <td>
+                      <%= t.customer ? t.customer.name : '-' %>
+                      <% if (t.customer && t.customer.phone) { %>
+                        <br><small class="text-muted"><%= t.customer.phone %></small>
+                      <% } %>
+                    </td>
+                    <td><%= t.weight ? t.weight + ' kg' : '-' %></td>
+                    <td class="fw-semibold">Rp <%= Number(t.total).toLocaleString('id-ID') %></td>
+                    <td>
+                      <% const statusLabels = { received: 'Diterima', washing: 'Dicuci', ironing: 'Disetrika', ready: 'Siap Ambil', completed: 'Selesai', canceled: 'Dibatalkan' }; %>
+                      <% const statusColors = { received: 'secondary', washing: 'info', ironing: 'warning', ready: 'success', completed: 'primary', canceled: 'danger' }; %>
+                      <span class="badge-santai bg-soft-<%= statusColors[t.laundry_status] %> text-<%= statusColors[t.laundry_status] %>"><%= statusLabels[t.laundry_status] %></span>
+                    </td>
+                    <td>
+                      <span class="badge-santai bg-<%= t.status === 'paid' ? 'soft-success text-success' : 'soft-warning text-warning' %>"><%= t.status === 'paid' ? 'LUNAS' : 'BON' %></span>
+                    </td>
+                    <td class="text-end">
+                      <% if (t.laundry_status !== 'completed' && t.laundry_status !== 'canceled') { %>
+                        <form method="POST" action="/transactions/<%= t.id %>/advance" class="d-inline" title="Status selanjutnya">
+                          <button class="btn btn-sm btn-success"><i class="bi bi-arrow-right"></i></button>
+                        </form>
+                      <% } %>
+                      <a href="/transactions/<%= t.id %>/print" target="_blank" class="btn btn-sm btn-info text-white"><i class="bi bi-printer"></i></a>
+                      <% if (t.status !== 'canceled') { %>
+                        <form method="POST" action="/transactions/<%= t.id %>/cancel" class="d-inline" onsubmit="return confirm('Batalkan order ini?')">
+                          <button class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i></button>
+                        </form>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

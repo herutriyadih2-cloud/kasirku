@@ -1,0 +1,62 @@
+<%- include('../partials/header', { title: 'Laporan Laba/Rugi' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Laporan Laba / Rugi' }) %>
+
+    <div class="page-content">
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-funnel text-primary me-2"></i>Pilih Periode</h5>
+          <form method="GET" class="row g-2">
+            <div class="col-md-4"><input type="date" name="start" class="form-control" value="<%= start %>"></div>
+            <div class="col-md-4"><input type="date" name="end" class="form-control" value="<%= end %>"></div>
+            <div class="col-md-4"><button class="btn btn-outline-santai btn-santai w-100"><i class="bi bi-filter"></i> Tampilkan</button></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-xl-4 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info"><h6>Total Pendapatan</h6><h3>Rp <%= Number(totalRevenue).toLocaleString('id-ID') %></h3></div>
+            <div class="stat-card-icon bg-soft-success"><i class="bi bi-graph-up-arrow"></i></div>
+          </div>
+        </div>
+        <div class="col-xl-4 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info"><h6>Total HPP</h6><h3>Rp <%= Number(totalCost).toLocaleString('id-ID') %></h3></div>
+            <div class="stat-card-icon bg-soft-danger"><i class="bi bi-graph-down-arrow"></i></div>
+          </div>
+        </div>
+        <div class="col-xl-4 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info"><h6>Laba Kotor</h6><h3>Rp <%= Number(grossProfit).toLocaleString('id-ID') %></h3></div>
+            <div class="stat-card-icon bg-soft-info"><i class="bi bi-pie-chart"></i></div>
+          </div>
+        </div>
+        <div class="col-xl-4 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info"><h6>Pengeluaran</h6><h3>Rp <%= Number(expenses).toLocaleString('id-ID') %></h3></div>
+            <div class="stat-card-icon bg-soft-warning"><i class="bi bi-wallet2"></i></div>
+          </div>
+        </div>
+        <div class="col-xl-4 col-md-6">
+          <div class="stat-card">
+            <div class="stat-card-info"><h6>Pemasukan Lain</h6><h3>Rp <%= Number(income).toLocaleString('id-ID') %></h3></div>
+            <div class="stat-card-icon bg-soft-primary"><i class="bi bi-cash-stack"></i></div>
+          </div>
+        </div>
+        <div class="col-xl-4 col-md-6">
+          <div class="stat-card" style="background: linear-gradient(135deg, <%= netProfit >= 0 ? '#10b981' : '#ef4444' %>, <%= netProfit >= 0 ? '#059669' : '#dc2626' %>); color: #fff;">
+            <div class="stat-card-info"><h6 style="color: rgba(255,255,255,0.9);">Laba Bersih</h6><h3 style="color: #fff;">Rp <%= Number(netProfit).toLocaleString('id-ID') %></h3></div>
+            <div class="stat-card-icon" style="background: rgba(255,255,255,0.2); color: #fff;"><i class="bi bi-cash-coin"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

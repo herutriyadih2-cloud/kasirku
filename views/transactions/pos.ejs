@@ -1,0 +1,107 @@
+<%- include('../partials/header', { title: 'Order Baru' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Order Baru' }) %>
+
+    <div class="page-content">
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="card-santai h-100">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3"><i class="bi bi-upc-scan text-primary me-2"></i>Pilih Layanan</h5>
+              <div class="input-group mb-3">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="searchProduct" class="form-control border-start-0 ps-0" placeholder="Ketik kode / nama layanan">
+              </div>
+              <div id="searchResults" class="list-group mb-4 shadow-sm" style="border-radius: 12px;"></div>
+
+              <h5 class="fw-bold mb-3"><i class="bi bi-cart3 text-primary me-2"></i>Keranjang Layanan</h5>
+              <div class="table-responsive">
+                <table class="table-santai">
+                  <thead><tr><th>Layanan</th><th>Harga</th><th>Qty/Berat</th><th>Diskon</th><th>Subtotal</th><th></th></tr></thead>
+                  <tbody id="cartItems"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card-santai h-100">
+            <div class="card-body">
+              <h5 class="fw-bold mb-4"><i class="bi bi-credit-card text-primary me-2"></i>Detail Order</h5>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Pelanggan</label>
+                <select id="customerId" class="form-select">
+                  <option value="">Pilih Pelanggan</option>
+                  <% customers.forEach(c => { %>
+                    <option value="<%= c.id %>"><%= c.name %> <%= c.phone ? '(' + c.phone + ')' : '' %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Petugas</label>
+                <select id="employeeId" class="form-select">
+                  <option value="">Pilih Petugas</option>
+                  <% employees.forEach(e => { %>
+                    <option value="<%= e.id %>"><%= e.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Berat Total (kg)</label>
+                <input type="number" step="0.01" id="weightTotal" class="form-control" value="0">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Estimasi Selesai</label>
+                <input type="date" id="estimatedFinish" class="form-control" value="<%= defaultEstimatedFinish %>">
+              </div>
+
+              <div class="bg-light p-4 rounded-4 mb-4 text-center">
+                <div class="text-muted mb-1">Total Bayar</div>
+                <h2 class="fw-bold text-primary m-0">Rp <span id="grandTotal">0</span></h2>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Diskon Total</label>
+                <input type="number" id="discountTotal" class="form-control" value="0">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Metode Pembayaran</label>
+                <select id="paymentMethod" class="form-select">
+                  <option value="cash">Tunai</option>
+                  <option value="transfer">Transfer</option>
+                  <option value="qris">QRIS</option>
+                  <option value="credit">Bon / Piutang</option>
+                </select>
+              </div>
+
+              <div class="mb-3" id="cashInput">
+                <label class="form-label fw-semibold">Bayar</label>
+                <input type="number" id="paidAmount" class="form-control" value="0">
+                <div class="mt-2 p-2 bg-light rounded-3">Kembalian: <strong class="text-success">Rp <span id="changeAmount">0</span></strong></div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Catatan</label>
+                <textarea id="note" class="form-control" rows="2"></textarea>
+              </div>
+
+              <button id="btnSaveTransaction" class="btn btn-success-santai btn-santai w-100 py-3 btn-lg"><i class="bi bi-check-circle"></i> Simpan Order</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/pos.js"></script>
+<%- include('../partials/footer') %>

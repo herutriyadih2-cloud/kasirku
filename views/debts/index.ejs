@@ -1,0 +1,108 @@
+<%- include('../partials/header', { title: 'Hutang & Piutang' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="app-wrapper">
+  <div class="main-content">
+    <%- include('../partials/topbar', { title: 'Hutang & Piutang' }) %>
+
+    <div class="page-content">
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-4"><i class="bi bi-plus-circle text-primary me-2"></i>Tambah Hutang / Piutang</h5>
+          <form method="POST" action="/debts" class="row g-3">
+            <div class="col-md-2">
+              <select name="type" class="form-select" id="debtType" required>
+                <option value="receivable">Piutang (Pelanggan)</option>
+                <option value="payable">Hutang (Supplier)</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select name="customer_id" class="form-select" id="customerSelect">
+                <option value="">Pilih Pelanggan</option>
+                <% customers.forEach(c => { %>
+                  <option value="<%= c.id %>"><%= c.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select name="supplier_id" class="form-select" id="supplierSelect" style="display:none;">
+                <option value="">Pilih Supplier</option>
+                <% suppliers.forEach(s => { %>
+                  <option value="<%= s.id %>"><%= s.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-2"><input type="number" name="amount" class="form-control" placeholder="Jumlah" required></div>
+            <div class="col-md-2"><input type="date" name="due_date" class="form-control"></div>
+            <div class="col-md-10"><input type="text" name="note" class="form-control" placeholder="Keterangan"></div>
+            <div class="col-md-2"><button class="btn btn-primary-santai btn-santai w-100"><i class="bi bi-plus-lg"></i> Tambah</button></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card-santai">
+        <div class="card-body">
+          <ul class="nav nav-pills mb-4">
+            <li class="nav-item"><a class="nav-link <%= !type ? 'active' : '' %>" href="/debts">Semua</a></li>
+            <li class="nav-item"><a class="nav-link <%= type === 'receivable' ? 'active' : '' %>" href="/debts?type=receivable">Piutang</a></li>
+            <li class="nav-item"><a class="nav-link <%= type === 'payable' ? 'active' : '' %>" href="/debts?type=payable">Hutang</a></li>
+          </ul>
+
+          <div class="table-responsive">
+            <table class="table-santai">
+              <thead>
+                <tr><th>Tipe</th><th>Pihak</th><th>Jumlah</th><th>Sisa</th><th>Jatuh Tempo</th><th>Status</th><th class="text-end">Aksi</th></tr>
+              </thead>
+              <tbody>
+                <% debts.forEach(d => { %>
+                  <tr>
+                    <td><span class="badge-santai bg-<%= d.type === 'receivable' ? 'soft-warning text-warning' : 'soft-danger text-danger' %>"><%= d.type === 'receivable' ? 'Piutang' : 'Hutang' %></span></td>
+                    <td class="fw-semibold"><%= d.customer ? d.customer.name : (d.supplier ? d.supplier.name : '-') %></td>
+                    <td>Rp <%= Number(d.amount).toLocaleString('id-ID') %></td>
+                    <td class="fw-semibold">Rp <%= Number(d.remaining).toLocaleString('id-ID') %></td>
+                    <td><%= d.due_date ? new Date(d.due_date).toLocaleDateString('id-ID') : '-' %></td>
+                    <td><span class="badge-santai bg-<%= d.status === 'paid' ? 'soft-success text-success' : (d.status === 'partial' ? 'soft-info text-info' : 'soft-secondary text-secondary') %>"><%= d.status.toUpperCase() %></span></td>
+                    <td class="text-end">
+                      <% if (d.remaining > 0) { %>
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#payModal<%= d.id %>"><i class="bi bi-cash"></i> Bayar</button>
+                      <% } %>
+                      <form method="POST" action="/debts/<%= d.id %>/delete" class="d-inline" onsubmit="return confirm('Hapus data ini?')">
+                        <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                  <div class="modal fade" id="payModal<%= d.id %>">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                        <form method="POST" action="/debts/<%= d.id %>/pay">
+                          <div class="modal-header border-0"><h5 class="modal-title fw-bold">Pelunasan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                          <div class="modal-body">
+                            <label class="form-label">Jumlah Bayar</label><input type="number" name="amount" class="form-control mb-3" placeholder="Jumlah bayar" max="<%= d.remaining %>" required>
+                            <label class="form-label">Tanggal Bayar</label><input type="date" name="payment_date" class="form-control mb-3" value="<%= new Date().toISOString().split('T')[0] %>" required>
+                            <label class="form-label">Keterangan</label><input type="text" name="note" class="form-control" placeholder="Keterangan">
+                          </div>
+                          <div class="modal-footer border-0"><button class="btn btn-success-santai btn-santai">Simpan Pembayaran</button></div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('debtType').addEventListener('change', function() {
+    const isReceivable = this.value === 'receivable';
+    document.getElementById('customerSelect').style.display = isReceivable ? 'block' : 'none';
+    document.getElementById('supplierSelect').style.display = isReceivable ? 'none' : 'block';
+    document.querySelector('select[name="customer_id"]').required = isReceivable;
+    document.querySelector('select[name="supplier_id"]').required = !isReceivable;
+  });
+</script>
+<%- include('../partials/footer') %>
