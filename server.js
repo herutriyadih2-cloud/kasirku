@@ -6,7 +6,7 @@ const methodOverride = require('method-override');
 
 const { sequelize, User, Product, Category, Employee } = require('./models');
 const bcrypt = require('bcryptjs');
-const { setUserLocals } = require('./middleware/auth');
+const { setUserLocals, requireAuth } = require('./middleware/auth');
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -56,6 +56,10 @@ app.use('/', incomeRoutes);
 app.use('/', reportRoutes);
 app.use('/', employeeRoutes);
 app.use('/', attendanceRoutes);
+
+app.get('/printer-settings', requireAuth, (req, res) => {
+  res.render('printer-settings', { title: 'Pengaturan Printer' });
+});
 
 app.get('/', (req, res) => {
   if (req.session.userId) return res.redirect('/dashboard');

@@ -62,17 +62,39 @@
       });
     },
 
-    connectSPP: function(address) {
+    connectSPP: function(address, secure) {
       return new Promise((resolve, reject) => {
         if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
-        window.bluetoothClassicSerial.connect(address, [SPP_UUID], resolve, reject);
+        const fn = secure !== false ? window.bluetoothClassicSerial.connect : window.bluetoothClassicSerial.connectInsecure;
+        fn(address, [SPP_UUID], resolve, reject);
       });
     },
 
-    disconnectSPP: function() {
+    connectInsecureSPP: function(address) {
+      return new Promise((resolve, reject) => {
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        window.bluetoothClassicSerial.connectInsecure(address, [SPP_UUID], resolve, reject);
+      });
+    },
+
+    isConnectedSPP: function(address) {
+      return new Promise((resolve, reject) => {
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        window.bluetoothClassicSerial.isConnected(address, SPP_UUID, resolve, reject);
+      });
+    },
+
+    disconnectSPP: function(address) {
       return new Promise((resolve) => {
         if (!window.bluetoothClassicSerial) return resolve();
-        window.bluetoothClassicSerial.disconnect(resolve, resolve);
+        window.bluetoothClassicSerial.disconnect(address || '', resolve, resolve);
+      });
+    },
+
+    showBluetoothSettings: function() {
+      return new Promise((resolve, reject) => {
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        window.bluetoothClassicSerial.showBluetoothSettings(resolve, reject);
       });
     },
 
@@ -359,6 +381,33 @@
     }
   };
 
+  CAP_PRINT.connectPrinter = async function(address) {
+    try {
+      await CAP_PRINT.connectSPP(address, true);
+      return true;
+    } catch (err1) {
+      console.log('Secure connect failed, trying insecure...', err1);
+      try {
+        await CAP_PRINT.connectInsecureSPP(address);
+        return true;
+      } catch (err2) {
+        throw new Error('Tidak bisa konek ke printer. Pastikan printer sudah dipairing di pengaturan Bluetooth. Error: ' + (err2.message || err2));
+      }
+    }
+  };
+
+  CAP_PRINT.testPrint = async function(address) {
+    const e = new CAP_PRINT.EscPosBuilder();
+    e.init()
+      .align('center')
+      .size(1, 1).bold(true).line('TEST PRINT').bold(false).size(0, 0)
+      .line('Laundry Suarni')
+      .line('Printer terhubung!')
+      .feed(3)
+      .cut();
+    await CAP_PRINT.writeSPP(address, e.toUint8Array());
+  };
+
   CAP_PRINT.printTransaction = async function(tx) {
     const platform = getPlatform();
 
@@ -366,15 +415,15 @@
       const mac = await CAP_PRINT.showDevicePicker();
       if (!mac) return;
       try {
-        await CAP_PRINT.connectSPP(mac);
+        await CAP_PRINT.connectPrinter(mac);
         const data = CAP_PRINT.buildEscPosReceipt(tx);
         await CAP_PRINT.writeSPP(mac, data);
-        await CAP_PRINT.disconnectSPP();
+        await CAP_PRINT.disconnectSPP(mac);
         alert('Struk berhasil dicetak.');
       } catch (err) {
         console.error(err);
         alert('Gagal mencetak: ' + err.message);
-        try { await CAP_PRINT.disconnectSPP(); } catch (e) {}
+        try { await CAP_PRINT.disconnectSPP(mac); } catch (e) {}
       }
       return;
     }
