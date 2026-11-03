@@ -21,6 +21,7 @@ const incomeRoutes = require('./routes/incomes');
 const reportRoutes = require('./routes/reports');
 const employeeRoutes = require('./routes/employees');
 const attendanceRoutes = require('./routes/attendance');
+const printRoutes = require('./routes/print');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,6 +57,7 @@ app.use('/', incomeRoutes);
 app.use('/', reportRoutes);
 app.use('/', employeeRoutes);
 app.use('/', attendanceRoutes);
+app.use('/', printRoutes);
 
 app.get('/printer-settings', requireAuth, (req, res) => {
   res.render('printer-settings', { title: 'Pengaturan Printer' });
@@ -72,6 +74,10 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  const isApi = req.path.startsWith('/api');
+  if (isApi || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+    return res.status(500).json({ success: false, error: 'Terjadi kesalahan server', message: err.message });
+  }
   res.status(500).render('error', { message: 'Terjadi kesalahan server' });
 });
 

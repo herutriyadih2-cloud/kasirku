@@ -8,42 +8,123 @@
     <div class="page-content">
       <div class="page-header">
         <h2>Pengaturan Printer</h2>
-        <p>Test koneksi printer Bluetooth thermal</p>
+        <p>Konfigurasi printer thermal untuk cetak struk</p>
       </div>
 
-      <div class="row g-3">
-        <div class="col-lg-6">
-          <div class="card-santai">
-            <div class="card-body">
-              <h5 class="fw-bold mb-3"><i class="bi bi-bluetooth text-primary me-2"></i>Status Koneksi</h5>
-              <div id="printerStatus">
-                <div class="alert alert-info">Memeriksa environment...</div>
-              </div>
-              <div class="d-grid gap-2 mt-3">
-                <button id="btnRefreshStatus" class="btn btn-outline-santai btn-santai"><i class="bi bi-arrow-clockwise"></i> Refresh Status</button>
-                <button id="btnOpenBtSettings" class="btn btn-secondary btn-santai d-none"><i class="bi bi-gear"></i> Buka Pengaturan Bluetooth</button>
-              </div>
-            </div>
+      <!-- Status Card -->
+      <div class="card-santai mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-info-circle text-primary me-2"></i>Status</h5>
+          <div id="printerStatus">
+            <div class="alert alert-info">Memeriksa environment...</div>
           </div>
-        </div>
-
-        <div class="col-lg-6">
-          <div class="card-santai">
-            <div class="card-body">
-              <h5 class="fw-bold mb-3"><i class="bi bi-search text-primary me-2"></i>Cari Printer</h5>
-              <p class="text-muted small">Pastikan printer sudah menyala dan dalam jangkauan HP.</p>
-              <button id="btnScanPrinter" class="btn btn-primary-santai btn-santai w-100 mb-3"><i class="bi bi-search"></i> Scan Printer</button>
-              <div id="scanResult"></div>
-            </div>
+          <div class="mt-3">
+            <strong>Printer aktif:</strong>
+            <div id="activeConfig" class="text-muted">Belum dikonfigurasi</div>
           </div>
         </div>
       </div>
 
+      <!-- Connection Type Tabs -->
+      <div class="card-santai">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3"><i class="bi bi-printer text-primary me-2"></i>Pilih Koneksi Printer</h5>
+          
+          <ul class="nav nav-pills mb-3" id="printerTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tcp-tab" data-bs-toggle="pill" data-bs-target="#tcp-panel" type="button">
+                <i class="bi bi-wifi"></i> WiFi / LAN
+              </button>
+            </li>
+            <li class="nav-item" role="presentation" id="tab-classic">
+              <button class="nav-link" id="classic-tab" data-bs-toggle="pill" data-bs-target="#classic-panel" type="button">
+                <i class="bi bi-bluetooth"></i> Bluetooth Classic
+              </button>
+            </li>
+            <li class="nav-item" role="presentation" id="tab-ble">
+              <button class="nav-link" id="ble-tab" data-bs-toggle="pill" data-bs-target="#ble-panel" type="button">
+                <i class="bi bi-bluetooth"></i> Bluetooth LE
+              </button>
+            </li>
+            <li class="nav-item" role="presentation" id="tab-airprint">
+              <button class="nav-link" id="airprint-tab" data-bs-toggle="pill" data-bs-target="#airprint-panel" type="button">
+                <i class="bi bi-phone"></i> AirPrint
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="printerTabContent">
+            <!-- WiFi / TCP -->
+            <div class="tab-pane fade show active" id="tcp-panel">
+              <p class="text-muted small">Cocok untuk printer thermal dengan koneksi WiFi/LAN. Port default: 9100. HP dan printer harus dalam jaringan WiFi yang sama.</p>
+              <form id="formTcp" class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label">IP Printer</label>
+                  <input type="text" name="ip" class="form-control" placeholder="192.168.1.100" required>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Port</label>
+                  <input type="number" name="port" class="form-control" value="9100" required>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                  <button type="submit" class="btn btn-primary-santai btn-santai w-100"><i class="bi bi-save"></i> Simpan</button>
+                </div>
+              </form>
+              <div class="mt-3">
+                <button id="btnTestTcp" class="btn btn-outline-santai btn-santai"><i class="bi bi-printer"></i> Test Print</button>
+              </div>
+            </div>
+
+            <!-- Bluetooth Classic -->
+            <div class="tab-pane fade" id="classic-panel">
+              <p class="text-muted small">Untuk printer thermal Bluetooth Classic/SPP di Android. Pastikan printer sudah dipairing di pengaturan HP.</p>
+              <div class="d-grid gap-2">
+                <button id="btnScanClassic" class="btn btn-outline-santai btn-santai"><i class="bi bi-search"></i> Scan Printer Classic</button>
+                <button id="btnOpenBtSettings" class="btn btn-secondary btn-santai"><i class="bi bi-gear"></i> Buka Pengaturan Bluetooth</button>
+              </div>
+              <div id="classicResult" class="mt-3"></div>
+            </div>
+
+            <!-- Bluetooth LE -->
+            <div class="tab-pane fade" id="ble-panel">
+              <p class="text-muted small">Untuk printer thermal Bluetooth Low Energy (BLE). Support Android & iOS. UUID default menggunakan Nordic UART Service.</p>
+              <form id="formBle" class="row g-2 mb-3">
+                <div class="col-md-4">
+                  <label class="form-label">Service UUID</label>
+                  <input type="text" name="serviceUuid" class="form-control" value="6E400001-B5A3-F393-E0A9-E50E24DCCA9E">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">TX Characteristic UUID</label>
+                  <input type="text" name="txCharUuid" class="form-control" value="6E400002-B5A3-F393-E0A9-E50E24DCCA9E">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Device ID (opsional)</label>
+                  <input type="text" name="deviceId" class="form-control" placeholder="Scan dulu">
+                </div>
+              </form>
+              <div class="d-grid gap-2">
+                <button id="btnScanBle" class="btn btn-outline-santai btn-santai"><i class="bi bi-search"></i> Scan Printer BLE</button>
+              </div>
+              <div id="bleResult" class="mt-3"></div>
+            </div>
+
+            <!-- AirPrint -->
+            <div class="tab-pane fade" id="airprint-panel">
+              <p class="text-muted small">Untuk iOS. Aplikasi akan menampilkan native print dialog. Tidak perlu konfigurasi khusus.</p>
+              <button id="btnSetAirPrint" class="btn btn-primary-santai btn-santai"><i class="bi bi-check-circle"></i> Gunakan AirPrint</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Log -->
       <div class="card-santai mt-4">
         <div class="card-body">
-          <h5 class="fw-bold mb-3"><i class="bi bi-bug text-primary me-2"></i>Log / Informasi</h5>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-bug text-primary me-2"></i>Log</h5>
+            <button id="btnClearLog" class="btn btn-sm btn-secondary">Bersihkan</button>
+          </div>
           <pre id="printerLog" class="bg-dark text-light p-3 rounded" style="min-height: 150px; max-height: 300px; overflow-y: auto; font-size: 0.8rem;"></pre>
-          <button id="btnClearLog" class="btn btn-sm btn-secondary">Bersihkan Log</button>
         </div>
       </div>
     </div>
@@ -54,7 +135,7 @@
 <script>
   const logEl = document.getElementById('printerLog');
   const statusEl = document.getElementById('printerStatus');
-  const scanResultEl = document.getElementById('scanResult');
+  const activeConfigEl = document.getElementById('activeConfig');
 
   function log(msg) {
     const time = new Date().toLocaleTimeString('id-ID');
@@ -66,53 +147,81 @@
     statusEl.innerHTML = `<div class="alert alert-${type}">${html}</div>`;
   }
 
-  function checkStatus() {
-    if (!window.CAP_PRINT) {
-      setStatus('CAP_PRINT tidak ditemukan. Pastikan aplikasi dibuka dari APK Android.', 'danger');
-      log('ERROR: CAP_PRINT tidak ditemukan');
+  function updateActiveConfig() {
+    const cfg = window.CAP_PRINT.getConfig();
+    if (!cfg.type || cfg.type === 'none') {
+      activeConfigEl.innerHTML = '<span class="text-warning">Belum dikonfigurasi</span>';
       return;
     }
-
-    const platform = window.CAP_PRINT.getPlatform();
-    log('Platform terdeteksi: ' + platform);
-
-    if (platform === 'android-native') {
-      setStatus('Aplikasi Android native terdeteksi. Siap scan printer.', 'success');
-      document.getElementById('btnOpenBtSettings').classList.remove('d-none');
-      window.CAP_PRINT.isBluetoothEnabled()
-        .then(() => log('Bluetooth: ON'))
-        .catch(err => log('Bluetooth: OFF / ' + err));
-    } else if (platform === 'ios-native') {
-      setStatus('iOS native terdeteksi. Gunakan AirPrint/native print dialog.', 'info');
-    } else {
-      setStatus('Anda membuka dari browser/web. Fitur Bluetooth printer hanya tersedia di APK Android.', 'warning');
-      log('WARNING: Bukan native app');
-    }
+    let info = '';
+    if (cfg.type === 'tcp') info = `WiFi/TCP - ${cfg.ip}:${cfg.port}`;
+    if (cfg.type === 'classic') info = `Bluetooth Classic - ${cfg.name || cfg.address}`;
+    if (cfg.type === 'ble') info = `Bluetooth LE - ${cfg.name || cfg.deviceId}`;
+    if (cfg.type === 'airprint') info = 'AirPrint / Native Print';
+    activeConfigEl.innerHTML = `<span class="text-success fw-semibold">${info}</span>`;
   }
 
-  document.getElementById('btnRefreshStatus').addEventListener('click', checkStatus);
+  function checkStatus() {
+    if (!window.CAP_PRINT) {
+      setStatus('CAP_PRINT tidak ditemukan.', 'danger');
+      return;
+    }
+    const p = window.CAP_PRINT.getPlatform();
+    const parts = [];
+    parts.push(`Platform: <strong>${p}</strong>`);
+    if (window.CAP_PRINT.hasBluetoothClassic()) parts.push('Bluetooth Classic: tersedia');
+    if (window.CAP_PRINT.hasBluetoothLE()) parts.push('Bluetooth LE: tersedia');
+    if (window.CAP_PRINT.hasNativePrinter()) parts.push('Native Print: tersedia');
+    setStatus(parts.join(' | '), 'info');
+    log('Status: ' + p);
+    updateActiveConfig();
+  }
 
-  document.getElementById('btnOpenBtSettings').addEventListener('click', () => {
-    window.CAP_PRINT.showBluetoothSettings()
-      .then(() => log('Pengaturan Bluetooth dibuka'))
-      .catch(err => log('Gagal buka pengaturan: ' + err));
+  // TCP Form
+  document.getElementById('formTcp').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const config = {
+      type: 'tcp',
+      ip: fd.get('ip'),
+      port: parseInt(fd.get('port')) || 9100
+    };
+    window.CAP_PRINT.saveConfig(config);
+    log('Konfigurasi TCP disimpan: ' + config.ip + ':' + config.port);
+    updateActiveConfig();
+    alert('Konfigurasi WiFi/LAN disimpan');
   });
 
-  document.getElementById('btnClearLog').addEventListener('click', () => {
-    logEl.textContent = '';
-  });
-
-  document.getElementById('btnScanPrinter').addEventListener('click', async () => {
-    scanResultEl.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div><p class="mt-2">Mencari printer...</p></div>';
-    log('Memulai scan printer...');
+  document.getElementById('btnTestTcp').addEventListener('click', async () => {
+    const cfg = window.CAP_PRINT.getConfig();
+    if (cfg.type !== 'tcp') {
+      alert('Simpan konfigurasi WiFi/LAN dulu');
+      return;
+    }
+    log('Test print TCP ke ' + cfg.ip + ':' + cfg.port);
     try {
-      const devices = await window.CAP_PRINT.scanDevices();
+      await window.CAP_PRINT.testTcpProxy(cfg.ip, cfg.port);
+      log('Test print TCP berhasil');
+      alert('Test print berhasil dikirim!');
+    } catch (err) {
+      log('ERROR TCP: ' + err.message);
+      alert('Gagal: ' + err.message);
+    }
+  });
+
+  // Bluetooth Classic
+  document.getElementById('btnScanClassic').addEventListener('click', async () => {
+    const el = document.getElementById('classicResult');
+    el.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div><p class="mt-2">Mencari printer...</p></div>';
+    log('Scan Bluetooth Classic dimulai');
+    try {
+      await window.CAP_PRINT.enableBluetooth();
+      const devices = await window.CAP_PRINT.scanDevicesClassic();
       log('Ditemukan ' + devices.length + ' perangkat');
-      if (devices.length === 0) {
-        scanResultEl.innerHTML = '<div class="alert alert-warning">Tidak ada printer ditemukan. Coba pairing manual di pengaturan Bluetooth.</div>';
+      if (!devices.length) {
+        el.innerHTML = '<div class="alert alert-warning">Tidak ada printer ditemukan. Pairing manual di pengaturan Bluetooth.</div>';
         return;
       }
-
       let html = '<div class="list-group">';
       devices.forEach(d => {
         html += `
@@ -121,38 +230,131 @@
               <div class="fw-semibold">${d.name || 'Unknown'}</div>
               <small class="text-muted">${d.address}</small>
             </div>
-            <button class="btn btn-sm btn-success btn-test-print" data-mac="${d.address}"><i class="bi bi-printer"></i> Test Print</button>
+            <div>
+              <button class="btn btn-sm btn-success btn-test-classic me-1" data-address="${d.address}" data-name="${d.name || ''}"><i class="bi bi-printer"></i> Test</button>
+              <button class="btn btn-sm btn-primary btn-save-classic" data-address="${d.address}" data-name="${d.name || ''}"><i class="bi bi-save"></i> Pilih</button>
+            </div>
           </div>
         `;
       });
       html += '</div>';
-      scanResultEl.innerHTML = html;
+      el.innerHTML = html;
 
-      document.querySelectorAll('.btn-test-print').forEach(btn => {
+      document.querySelectorAll('.btn-test-classic').forEach(btn => {
         btn.addEventListener('click', async () => {
-          const mac = btn.dataset.mac;
-          log('Menghubungkan ke ' + mac + '...');
+          const address = btn.dataset.address;
+          log('Test Classic ' + address);
           try {
-            await window.CAP_PRINT.connectPrinter(mac);
-            log('Berhasil konek ke ' + mac);
-            await window.CAP_PRINT.testPrint(mac);
-            log('Test print terkirim');
-            alert('Test print berhasil dikirim!');
-            await window.CAP_PRINT.disconnectSPP(mac);
+            await window.CAP_PRINT.testPrint('classic', { address });
+            log('Test Classic berhasil');
+            alert('Test print berhasil!');
           } catch (err) {
-            log('ERROR: ' + err.message);
+            log('ERROR Classic: ' + err.message);
             alert('Gagal: ' + err.message);
           }
         });
       });
+
+      document.querySelectorAll('.btn-save-classic').forEach(btn => {
+        btn.addEventListener('click', () => {
+          window.CAP_PRINT.saveConfig({
+            type: 'classic',
+            address: btn.dataset.address,
+            name: btn.dataset.name
+          });
+          log('Printer Classic dipilih: ' + btn.dataset.name);
+          updateActiveConfig();
+          alert('Printer disimpan');
+        });
+      });
     } catch (err) {
-      log('ERROR scan: ' + err.message);
-      scanResultEl.innerHTML = '<div class="alert alert-danger">Gagal scan: ' + err.message + '</div>';
+      log('ERROR scan classic: ' + err.message);
+      el.innerHTML = '<div class="alert alert-danger">' + err.message + '</div>';
     }
   });
 
-  // Initial check
-  setTimeout(checkStatus, 500);
+  document.getElementById('btnOpenBtSettings').addEventListener('click', () => {
+    window.CAP_PRINT.showBluetoothSettings()
+      .then(() => log('Pengaturan Bluetooth dibuka'))
+      .catch(err => log('Gagal buka: ' + err.message));
+  });
+
+  // Bluetooth LE
+  document.getElementById('btnScanBle').addEventListener('click', async () => {
+    const el = document.getElementById('bleResult');
+    el.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div><p class="mt-2">Mencari printer BLE...</p></div>';
+    log('Scan BLE dimulai');
+    try {
+      const found = [];
+      window.CAP_PRINT._bleScanCallback = (result) => {
+        if (!result.device || !result.device.deviceId) return;
+        if (found.find(f => f.deviceId === result.device.deviceId)) return;
+        found.push(result.device);
+      };
+      await window.CAP_PRINT.scanBLE(8000);
+      window.CAP_PRINT._bleScanCallback = null;
+      log('Ditemukan ' + found.length + ' perangkat BLE');
+      if (!found.length) {
+        el.innerHTML = '<div class="alert alert-warning">Tidak ada perangkat BLE ditemukan.</div>';
+        return;
+      }
+      let html = '<div class="list-group">';
+      found.forEach(d => {
+        html += `
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">${d.name || 'Unknown'}</div>
+              <small class="text-muted">${d.deviceId}</small>
+            </div>
+            <button class="btn btn-sm btn-primary btn-save-ble" data-deviceid="${d.deviceId}" data-name="${d.name || ''}"><i class="bi bi-save"></i> Pilih</button>
+          </div>
+        `;
+      });
+      html += '</div>';
+      el.innerHTML = html;
+
+      document.querySelectorAll('.btn-save-ble').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const fd = new FormData(document.getElementById('formBle'));
+          window.CAP_PRINT.saveConfig({
+            type: 'ble',
+            deviceId: btn.dataset.deviceid,
+            name: btn.dataset.name,
+            serviceUuid: fd.get('serviceUuid'),
+            txCharUuid: fd.get('txCharUuid')
+          });
+          document.querySelector('[name="deviceId"]').value = btn.dataset.deviceid;
+          log('Printer BLE dipilih: ' + btn.dataset.name);
+          updateActiveConfig();
+          alert('Printer BLE disimpan');
+        });
+      });
+    } catch (err) {
+      window.CAP_PRINT._bleScanCallback = null;
+      log('ERROR scan BLE: ' + err.message);
+      el.innerHTML = '<div class="alert alert-danger">' + err.message + '</div>';
+    }
+  });
+
+  // AirPrint
+  document.getElementById('btnSetAirPrint').addEventListener('click', () => {
+    window.CAP_PRINT.saveConfig({ type: 'airprint' });
+    log('AirPrint dipilih');
+    updateActiveConfig();
+    alert('AirPrint disimpan');
+  });
+
+  document.getElementById('btnClearLog').addEventListener('click', () => {
+    logEl.textContent = '';
+  });
+
+  // Hide unsupported tabs
+  setTimeout(() => {
+    checkStatus();
+    if (!window.CAP_PRINT.hasBluetoothClassic()) document.getElementById('tab-classic').classList.add('d-none');
+    if (!window.CAP_PRINT.hasBluetoothLE()) document.getElementById('tab-ble').classList.add('d-none');
+    if (!window.CAP_PRINT.hasNativePrinter()) document.getElementById('tab-airprint').classList.add('d-none');
+  }, 300);
 </script>
 
 <%- include('partials/footer') %>

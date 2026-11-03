@@ -1,9 +1,9 @@
 /**
- * Capacitor Native Print Helper
- * Cross-platform print untuk Android & iOS
- * - Android: Bluetooth Classic SPP ke printer thermal ESC/POS
- * - iOS: Native print dialog (HTML/UIPrintInteractionController)
- * - Web: browser print fallback
+ * Universal Printer Manager untuk Laundry Suarni Kasir
+ * Support:
+ * - Android: Bluetooth Classic SPP, Bluetooth LE, WiFi/TCP (via backend proxy)
+ * - iOS: AirPrint/native print dialog, Bluetooth LE, WiFi/TCP (via backend proxy)
+ * - Web: Browser print, WiFi/TCP (via backend proxy)
  */
 
 (function() {
@@ -11,14 +11,21 @@
 
   const SPP_UUID = '00001101-0000-1000-8000-00805F9B34FB';
 
+  // Default Nordic UART Service UUIDs untuk BLE printer
+  const DEFAULT_BLE = {
+    service: '6E400001-B5A3-F393-E0A9-E50E24DCCA9E',
+    txChar: '6E400002-B5A3-F393-E0A9-E50E24DCCA9E',
+    rxChar: '6E400003-B5A3-F393-E0A9-E50E24DCCA9E'
+  };
+
+  const STORAGE_KEY = 'printer_config_v1';
+
   function getPlatform() {
     if (typeof window === 'undefined') return 'web';
     const ua = navigator.userAgent || '';
     const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const isAndroid = /Android/.test(ua);
 
-    if (window.bluetoothClassicSerial && isAndroid) return 'android-native';
-    if (window.plugin && window.plugin.printer && isIOS) return 'ios-native';
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
       return isIOS ? 'ios-native' : 'android-native';
     }
@@ -29,42 +36,89 @@
     return getPlatform() === 'android-native' || getPlatform() === 'ios-native';
   }
 
+  function isAndroidNative() {
+    return getPlatform() === 'android-native';
+  }
+
+  function isIOSNative() {
+    return getPlatform() === 'ios-native';
+  }
+
+  function hasBluetoothClassic() {
+    return !!window.bluetoothClassicSerial;
+  }
+
+  function hasBluetoothLE() {
+    return !!(window.BleClient || (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.BluetoothLe));
+  }
+
+  function getBleClient() {
+    return window.BleClient || (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.BluetoothLe);
+  }
+
+  function hasNativePrinter() {
+    return !!(window.plugin && window.plugin.printer);
+  }
+
   const CAP_PRINT = {
     getPlatform: getPlatform,
     isNative: isNative,
+    isAndroidNative: isAndroidNative,
+    isIOSNative: isIOSNative,
+    hasBluetoothClassic: hasBluetoothClassic,
+    hasBluetoothLE: hasBluetoothLE,
+    hasNativePrinter: hasNativePrinter,
+
+    // ===== Config Management =====
+    getConfig: function() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : { type: 'none' };
+      } catch (e) {
+        return { type: 'none' };
+      }
+    },
+
+    saveConfig: function(config) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    },
+
+    clearConfig: function() {
+      localStorage.removeItem(STORAGE_KEY);
+    },
 
     // ===== Android Bluetooth Classic =====
     enableBluetooth: function() {
       return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth Classic tidak tersedia'));
         window.bluetoothClassicSerial.enable(resolve, reject);
       });
     },
 
     isBluetoothEnabled: function() {
       return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth Classic tidak tersedia'));
         window.bluetoothClassicSerial.isEnabled(resolve, reject);
       });
     },
 
     listPaired: function() {
       return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth Classic tidak tersedia'));
         window.bluetoothClassicSerial.list(resolve, reject);
       });
     },
 
     discoverUnpaired: function() {
       return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth Classic tidak tersedia'));
         window.bluetoothClassicSerial.discoverUnpaired(resolve, reject);
       });
     },
 
     connectSPP: function(address, secure) {
       return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth Classic tidak tersedia'));
         const fn = secure !== false ? window.bluetoothClassicSerial.connect : window.bluetoothClassicSerial.connectInsecure;
         fn(address, [SPP_UUID], resolve, reject);
       });
@@ -72,15 +126,8 @@
 
     connectInsecureSPP: function(address) {
       return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth Classic tidak tersedia'));
         window.bluetoothClassicSerial.connectInsecure(address, [SPP_UUID], resolve, reject);
-      });
-    },
-
-    isConnectedSPP: function(address) {
-      return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
-        window.bluetoothClassicSerial.isConnected(address, SPP_UUID, resolve, reject);
       });
     },
 
@@ -91,16 +138,9 @@
       });
     },
 
-    showBluetoothSettings: function() {
-      return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
-        window.bluetoothClassicSerial.showBluetoothSettings(resolve, reject);
-      });
-    },
-
     writeSPP: function(address, data) {
       return new Promise((resolve, reject) => {
-        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth tidak tersedia'));
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth Classic tidak tersedia'));
         let buffer;
         if (data instanceof Uint8Array) buffer = data.buffer;
         else if (data instanceof ArrayBuffer) buffer = data;
@@ -110,22 +150,92 @@
       });
     },
 
-    // ===== iOS Native Print (cordova-plugin-printer) =====
+    showBluetoothSettings: function() {
+      return new Promise((resolve, reject) => {
+        if (!window.bluetoothClassicSerial) return reject(new Error('Bluetooth Classic tidak tersedia'));
+        window.bluetoothClassicSerial.showBluetoothSettings(resolve, reject);
+      });
+    },
+
+    // ===== Bluetooth LE =====
+    initBLE: async function() {
+      const BleClient = getBleClient();
+      if (!BleClient) throw new Error('Bluetooth LE tidak tersedia');
+      await BleClient.initialize();
+    },
+
+    scanBLE: async function(timeoutMs = 10000) {
+      const BleClient = getBleClient();
+      if (!BleClient) throw new Error('Bluetooth LE tidak tersedia');
+      await BleClient.initialize();
+      await BleClient.requestLEScan({}, (result) => {
+        if (CAP_PRINT._bleScanCallback) CAP_PRINT._bleScanCallback(result);
+      });
+      setTimeout(async () => {
+        try { await BleClient.stopLEScan(); } catch (e) {}
+      }, timeoutMs);
+    },
+
+    stopScanBLE: async function() {
+      const BleClient = getBleClient();
+      if (!BleClient) return;
+      try { await BleClient.stopLEScan(); } catch (e) {}
+    },
+
+    connectBLE: async function(deviceId) {
+      const BleClient = getBleClient();
+      if (!BleClient) throw new Error('Bluetooth LE tidak tersedia');
+      await BleClient.connect(deviceId);
+    },
+
+    disconnectBLE: async function(deviceId) {
+      const BleClient = getBleClient();
+      if (!BleClient) return;
+      try { await BleClient.disconnect(deviceId); } catch (e) {}
+    },
+
+    writeBLE: async function(deviceId, serviceUuid, characteristicUuid, data) {
+      const BleClient = getBleClient();
+      if (!BleClient) throw new Error('Bluetooth LE tidak tersedia');
+      let buffer;
+      if (data instanceof Uint8Array) buffer = data;
+      else if (Array.isArray(data)) buffer = new Uint8Array(data);
+      else if (typeof data === 'string') buffer = new Uint8Array(data.split('').map(c => c.charCodeAt(0)));
+      else throw new Error('Format data BLE tidak didukung');
+      await BleClient.writeWithoutResponse(deviceId, serviceUuid, characteristicUuid, buffer);
+    },
+
+    // ===== WiFi / TCP via Backend Proxy =====
+    printViaTcpProxy: async function(ip, port, data) {
+      const base64 = dataToBase64(data);
+      const res = await fetch('/api/print/tcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, port: port || 9100, data: base64 })
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Gagal print via TCP');
+      return json;
+    },
+
+    testTcpProxy: async function(ip, port) {
+      const res = await fetch('/api/print/tcp/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, port: port || 9100 })
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Gagal test print TCP');
+      return json;
+    },
+
+    // ===== iOS Native Print (AirPrint) =====
     printHTML: function(html, options) {
       return new Promise((resolve, reject) => {
         if (!window.plugin || !window.plugin.printer) {
           return reject(new Error('Plugin printer tidak tersedia'));
         }
         window.plugin.printer.print(html, options || {}, resolve, reject);
-      });
-    },
-
-    checkPrinter: function() {
-      return new Promise((resolve, reject) => {
-        if (!window.plugin || !window.plugin.printer) {
-          return reject(new Error('Plugin printer tidak tersedia'));
-        }
-        window.plugin.printer.check(resolve, reject);
       });
     },
 
@@ -165,6 +275,18 @@
     cut: function() { return this.raw([0x1D, 0x56, 0x00]); },
     toUint8Array: function() { return new Uint8Array(this.buffer); }
   };
+
+  function dataToBase64(data) {
+    if (data instanceof Uint8Array) {
+      let binary = '';
+      const len = data.byteLength;
+      for (let i = 0; i < len; i++) binary += String.fromCharCode(data[i]);
+      return btoa(binary);
+    }
+    if (Array.isArray(data)) return dataToBase64(new Uint8Array(data));
+    if (typeof data === 'string') return btoa(data);
+    throw new Error('Format data tidak bisa dikonversi ke base64');
+  }
 
   CAP_PRINT.buildEscPosReceipt = function(tx) {
     const e = new CAP_PRINT.EscPosBuilder();
@@ -295,108 +417,61 @@
     `;
   };
 
-  // ===== UI Helpers =====
-  CAP_PRINT.scanDevices = async function() {
+  CAP_PRINT.scanDevicesClassic = async function() {
     let paired = [];
     let unpaired = [];
-    try { paired = await CAP_PRINT.listPaired(); } catch (e) { console.log('paired error', e); }
-    try { unpaired = await CAP_PRINT.discoverUnpaired(); } catch (e) { console.log('unpaired error', e); }
+    try { paired = await CAP_PRINT.listPaired(); } catch (e) {}
+    try { unpaired = await CAP_PRINT.discoverUnpaired(); } catch (e) {}
 
     const all = [];
     const seen = new Set();
     [...paired, ...unpaired].forEach(d => {
       if (!seen.has(d.address)) {
         seen.add(d.address);
-        all.push(d);
+        all.push({ ...d, type: 'classic' });
       }
     });
     return all;
   };
 
-  CAP_PRINT.showDevicePicker = async function() {
-    try {
-      try { await CAP_PRINT.enableBluetooth(); } catch (e) { console.log('enable', e); }
-      await CAP_PRINT.isBluetoothEnabled();
-
-      const loadingModal = document.createElement('div');
-      loadingModal.className = 'cap-print-modal';
-      loadingModal.innerHTML = `
-        <div class="cap-print-modal-content text-center">
-          <div class="spinner-border text-primary mb-3" role="status"></div>
-          <h6 class="fw-bold mb-1">Mencari printer Bluetooth...</h6>
-          <p class="text-muted small mb-3">Pastikan printer sudah menyala.</p>
-          <button type="button" class="btn btn-secondary btn-sm w-100 cap-print-cancel">Batal</button>
-        </div>
-      `;
-      document.body.appendChild(loadingModal);
-
-      let cancelled = false;
-      loadingModal.querySelector('.cap-print-cancel').addEventListener('click', () => {
-        cancelled = true;
-        document.body.removeChild(loadingModal);
-      });
-
-      const devices = await CAP_PRINT.scanDevices();
-
-      if (cancelled || !document.body.contains(loadingModal)) return null;
-      document.body.removeChild(loadingModal);
-
-      if (!devices || devices.length === 0) {
-        alert('Tidak menemukan printer Bluetooth. Pastikan printer menyala dan dalam jangkauan.');
-        return null;
-      }
-
-      return new Promise((resolve) => {
-        const modal = document.createElement('div');
-        modal.className = 'cap-print-modal';
-        modal.innerHTML = `
-          <div class="cap-print-modal-content">
-            <h6 class="fw-bold mb-3">Pilih Printer Bluetooth</h6>
-            <div class="list-group mb-3" style="max-height: 320px; overflow-y: auto;">
-              ${devices.map(d => `
-                <button type="button" class="list-group-item list-group-item-action" data-mac="${d.address}">
-                  <div class="fw-semibold">${d.name || 'Unknown Device'}</div>
-                  <small class="text-muted">${d.address}</small>
-                </button>
-              `).join('')}
-            </div>
-            <button type="button" class="btn btn-secondary btn-sm w-100 cap-print-cancel">Batal</button>
-          </div>
-        `;
-        document.body.appendChild(modal);
-        modal.querySelectorAll('.list-group-item').forEach(btn => {
-          btn.addEventListener('click', () => {
-            document.body.removeChild(modal);
-            resolve(btn.dataset.mac);
-          });
-        });
-        modal.querySelector('.cap-print-cancel').addEventListener('click', () => {
-          document.body.removeChild(modal);
-          resolve(null);
-        });
-      });
-    } catch (err) {
-      alert('Gagal mengakses Bluetooth: ' + err.message);
-      return null;
-    }
-  };
-
-  CAP_PRINT.connectPrinter = async function(address) {
+  CAP_PRINT.connectPrinterClassic = async function(address) {
     try {
       await CAP_PRINT.connectSPP(address, true);
       return true;
     } catch (err1) {
-      console.log('Secure connect failed, trying insecure...', err1);
       try {
         await CAP_PRINT.connectInsecureSPP(address);
         return true;
       } catch (err2) {
-        throw new Error('Tidak bisa konek ke printer. Pastikan printer sudah dipairing di pengaturan Bluetooth. Error: ' + (err2.message || err2));
+        throw new Error('Tidak bisa konek ke printer Bluetooth Classic. Pastikan sudah dipairing. Error: ' + (err2.message || err2));
       }
     }
   };
 
-  CAP_PRINT.testPrint = async function(address) {
+  CAP_PRINT.printEscPos = async function(data, connectionType, config) {
+    if (connectionType === 'classic') {
+      await CAP_PRINT.connectPrinterClassic(config.address);
+      await CAP_PRINT.writeSPP(config.address, data);
+      await CAP_PRINT.disconnectSPP(config.address);
+      return true;
+    }
+
+    if (connectionType === 'ble') {
+      await CAP_PRINT.connectBLE(config.deviceId);
+      await CAP_PRINT.writeBLE(config.deviceId, config.serviceUuid, config.txCharUuid, data);
+      await CAP_PRINT.disconnectBLE(config.deviceId);
+      return true;
+    }
+
+    if (connectionType === 'tcp') {
+      await CAP_PRINT.printViaTcpProxy(config.ip, config.port, data);
+      return true;
+    }
+
+    throw new Error('Tipe koneksi printer tidak dikenal: ' + connectionType);
+  };
+
+  CAP_PRINT.testPrint = async function(connectionType, config) {
     const e = new CAP_PRINT.EscPosBuilder();
     e.init()
       .align('center')
@@ -405,25 +480,48 @@
       .line('Printer terhubung!')
       .feed(3)
       .cut();
-    await CAP_PRINT.writeSPP(address, e.toUint8Array());
+    await CAP_PRINT.printEscPos(e.toUint8Array(), connectionType, config);
   };
 
   CAP_PRINT.printTransaction = async function(tx) {
     const platform = getPlatform();
+    const config = CAP_PRINT.getConfig();
 
-    if (platform === 'android-native') {
-      const mac = await CAP_PRINT.showDevicePicker();
-      if (!mac) return;
+    // Jika ada konfigurasi printer tersimpan, gunakan itu
+    if (config.type && config.type !== 'none' && config.type !== 'airprint') {
       try {
-        await CAP_PRINT.connectPrinter(mac);
         const data = CAP_PRINT.buildEscPosReceipt(tx);
-        await CAP_PRINT.writeSPP(mac, data);
-        await CAP_PRINT.disconnectSPP(mac);
+        await CAP_PRINT.printEscPos(data, config.type, config);
+        alert('Struk berhasil dicetak.');
+      } catch (err) {
+        console.error(err);
+        alert('Gagal mencetak: ' + err.message + '\n\nCoba buka Pengaturan Printer untuk cek koneksi.');
+      }
+      return;
+    }
+
+    // Default platform-specific
+    if (platform === 'android-native') {
+      if (!hasBluetoothClassic()) {
+        alert('Plugin Bluetooth Classic tidak tersedia.');
+        return;
+      }
+      try {
+        const devices = await CAP_PRINT.scanDevicesClassic();
+        if (!devices.length) {
+          alert('Tidak menemukan printer Bluetooth. Pastikan printer sudah dipairing.');
+          return;
+        }
+        // Sederhana: pakai printer pertama yang ditemukan (bisa diperbaiki dengan picker)
+        const printer = devices.find(d => d.name && /printer|print|pos|thermal|odi|blue|m100|58|80/i.test(d.name)) || devices[0];
+        await CAP_PRINT.connectPrinterClassic(printer.address);
+        const data = CAP_PRINT.buildEscPosReceipt(tx);
+        await CAP_PRINT.writeSPP(printer.address, data);
+        await CAP_PRINT.disconnectSPP(printer.address);
         alert('Struk berhasil dicetak.');
       } catch (err) {
         console.error(err);
         alert('Gagal mencetak: ' + err.message);
-        try { await CAP_PRINT.disconnectSPP(mac); } catch (e) {}
       }
       return;
     }

@@ -21,7 +21,8 @@
 <body>
   <div class="no-print text-center py-4">
     <button onclick="window.print()" class="btn btn-primary btn-print me-2 mb-2"><i class="bi bi-printer"></i> Cetak Struk</button>
-    <button id="btnNativePrint" class="btn btn-success btn-print me-2 mb-2 d-none"><i class="bi bi-printer-fill"></i> Cetak ke Printer</button>
+    <button id="btnNativePrint" class="btn btn-success btn-print me-2 mb-2 d-none"><i class="bi bi-printer-fill"></i> Cetak ke Printer Tersimpan</button>
+    <a href="/printer-settings" class="btn btn-warning btn-print mb-2"><i class="bi bi-gear"></i> Pengaturan Printer</a>
     <a href="/transactions" class="btn btn-secondary btn-print mb-2"><i class="bi bi-arrow-left"></i> Kembali</a>
   </div>
 
@@ -58,14 +59,19 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const btn = document.getElementById('btnNativePrint');
-      if (window.CAP_PRINT && window.CAP_PRINT.isNative && window.CAP_PRINT.isNative()) {
+      if (!window.CAP_PRINT) return;
+      const cfg = window.CAP_PRINT.getConfig();
+      const hasConfig = cfg.type && cfg.type !== 'none';
+      const isNative = window.CAP_PRINT.isNative();
+
+      if (hasConfig || isNative) {
         btn.classList.remove('d-none');
-        const platform = window.CAP_PRINT.getPlatform();
-        if (platform === 'ios-native') {
-          btn.innerHTML = '<i class="bi bi-printer-fill"></i> Cetak (AirPrint)';
-        } else {
-          btn.innerHTML = '<i class="bi bi-bluetooth"></i> Cetak Bluetooth';
-        }
+        let label = 'Cetak ke Printer';
+        if (cfg.type === 'tcp') label = 'Cetak ke Printer WiFi';
+        if (cfg.type === 'classic') label = 'Cetak ke Printer Bluetooth';
+        if (cfg.type === 'ble') label = 'Cetak ke Printer BLE';
+        if (cfg.type === 'airprint') label = 'Cetak (AirPrint)';
+        btn.innerHTML = '<i class="bi bi-printer-fill"></i> ' + label;
         btn.addEventListener('click', function() {
           window.CAP_PRINT.printTransaction(window.PRINT_TX);
         });

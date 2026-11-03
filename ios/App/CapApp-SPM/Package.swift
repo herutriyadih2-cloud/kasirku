@@ -12,6 +12,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.6.0"),
+        .package(name: "CapacitorCommunityBluetoothLe", path: "../../../node_modules/@capacitor-community/bluetooth-le"),
         .package(name: "CordovaPluginBluetoothClassicSerialPort", path: "../../capacitor-cordova-ios-plugins/sources/CordovaPluginBluetoothClassicSerialPort"),
         .package(name: "CordovaPluginPrinter", path: "../../capacitor-cordova-ios-plugins/sources/CordovaPluginPrinter")
     ],
@@ -21,6 +22,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm"),
+                .product(name: "CapacitorCommunityBluetoothLe", package: "CapacitorCommunityBluetoothLe"),
                 .product(name: "CordovaPluginBluetoothClassicSerialPort", package: "CordovaPluginBluetoothClassicSerialPort"),
                 .product(name: "CordovaPluginPrinter", package: "CordovaPluginPrinter")
             ]
